@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Locais para Exercício</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f0f9f6;
+      color: #333;
+    }
+
+    header {
+      background: linear-gradient(90deg, #48c9b0, #5dade2);
+      color: white;
+      padding: 1.5rem;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    #filters {
+      text-align: center;
+      margin: 1rem;
+    }
+
+    #filters button {
+      margin: 0.5rem;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 20px;
+      background-color: #5dade2;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    #filters button:hover {
+      background-color: #48c9b0;
+    }
+
+    #map {
+      height: calc(100vh - 230px);
+      width: 100%;
+      border-top: 3px solid #48c9b0;
+    }
+
+    .leaflet-popup-content img {
+      width: 100%;
+      border-radius: 12px;
+      margin-top: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Mapa de Locais para Exercício</h1>
+    <p>Descubra espaços próximos para se movimentar com saúde!</p>
+  </header>
+
+  <div id="filters">
+    <button onclick="filtrar('todos')">Todos</button>
+    <button onclick="filtrar('caminhada')">🚶 Caminhada</button>
+    <button onclick="filtrar('musculacao')">🏋️ Musculação</button>
+    <button onclick="filtrar('yoga')">🧘 Yoga</button>
+  </div>
+
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map').setView([-15.5709215,-56.0689904], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Ícones personalizados com emojis (podemos trocar por imagens depois)
+    const icons = {
+      caminhada: L.divIcon({ className: 'emoji-icon', html: '🚶‍♀️', iconSize: [30, 30], popupAnchor: [0, -15] }),
+      musculacao: L.divIcon({ className: 'emoji-icon', html: '🏋️‍♂️', iconSize: [30, 30], popupAnchor: [0, -15] }),
+      exercícios: L.divIcon({ className: 'emoji-icon', html: '🧘‍♀️', iconSize: [30, 30], popupAnchor: [0, -15] })
+    };
+
+    const locais = [
+  {
+    nome: "Praça Tenente Luciano Maiolino (Bela Vista)",
+    descricao: "Pista de caminhada e academia ao ar livre.",
+    imagem: "https://upload.wikimedia.org/wikipedia/commons/placeholder/maiolino.jpg", // substitution required
+    tipo: "caminhada",
+    lat: -15.5823723, lng: -56.0596596
+  },
+  {
+    nome: "Praça Gonçalo Miranda",
+    descricao: "Caminhada e equipamentos de musculação.",
+    imagem: "https://upload.wikimedia.org/wikipedia/commons/placeholder/goncalo.jpg",
+    tipo: "musculacao",
+    lat: -15.5843181, lng: -56.0611468
+  },
+  {
+    nome: "Praça do Terra Nova",
+    descricao: "Pista de caminhada, academia e playground.",
+    imagem: "https://upload.wikimedia.org/wikipedia/commons/placeholder/terranova.jpg",
+    tipo: "musculacao",
+    lat: -15.5812044, lng: -56.0713768
+  },
+  {
+    nome: "Praça do Amarelinho",
+    descricao: "Local arborizado para caminhadas.",
+    imagem: "https://upload.wikimedia.org/wikipedia/commons/placeholder/amarelinho.jpg",
+    tipo: "caminhada",
+    lat: -15.5694683, lng: -56.061793
+  },
+  {
+    nome: "Praça Morada do Ouro",
+    descricao: "Espaço tranquilo para caminhada.",
+    imagem: "https://upload.wikimedia.org/wikipedia/commons/placeholder/moradadoouro.jpg",
+    tipo: "caminhada",
+    lat: -15.5661659, lng: -56.0600054
+  },
+  {
+    nome: "Praça Umberlindo Silva Nascimento",
+    descricao: "Caminhada, musculação e espaço para exercícios.",
+    imagem: "https://upload.wikimedia.org/wikipedia/commons/placeholder/umberlindo.jpg",
+    tipo: "musculacao",
+    lat: -15.588043, lng: -56.0554175
+  },
+  {
+    nome: "Ginásio Verdinho",
+    descricao: "Ginásio com quadras e espaço para treino funcional.",
+    imagem: "https://upload.wikimedia.org/wikipedia/commons/placeholder/verdinho.jpg",
+    tipo: "musculacao",
+    lat: -15.5538904, lng: -56.0561104
+  },
+  {
+    nome: "Parque da Nascente",
+    descricao: "Área verde preservada para caminhada.",
+    imagem: "https://upload.wikimedia.org/wikipedia/commons/placeholder/nascente.jpg",
+    tipo: "caminhada",
+    lat: -15.5719303, lng: -56.0570296
+  },
+  {
+    nome: "Parque Municipal Lagoa Encantada",
+    descricao: "Arborizado, ideal para caminhada e algo mais.",
+    imagem: "https://upload.wikimedia.org/wikipedia/commons/placeholder/lagoaencantada.jpg",
+    tipo: "musculacao",
+    lat: -15.5675453, lng: -56.0408212
+   },
+  {
+  nome: "Praça Tenente Luciano Maiolino (Bela Vista)",
+  descricao: "Pista de caminhada e academia ao ar livre, iluminação e bancos.",
+  imagem: "https://images.openai.com/thumbnails/url/SPXUKHicu1mUUVJSUGylr5-al1xUWVCSmqJbkpRnoJdeXJJYkpmsl5yfq5-Zm5ieWmxfaAuUsXL0S7F0Tw5JLQ8oCzczLg0PKnQ2rQjJdcxLTa7ycU928wwMt3AuiCpJd_dLC3RKSrdMDTZ2KvUJywwxijROzDVTKwYA0acpFg",
+  tipo: "caminhada",
+  lat: -15.5823723,
+  lng: -56.0596596
+},
+{
+  nome: "VÔLEI BELA VISTA",
+  descricao: "Quadra de areia para vôlei, exercícios e caminhada.",
+  imagem: "https://images.openai.com/thumbnails/url/l7F6Rnicu1mUUVJSUGylr5-al1xUWVCSmqJbkpRnoJdeXJJYkpmsl5yfq5-Zm5ieWmxfaAuUsXL0S7F0Tw4Od8nOMQgNS48MLyn3ds8stzQvdq40DS4oi0jx8PTz9jeKiErNdg8vdInKiy8rzQwONDcriDArcolQKwYA068phA",
+  tipo: "musculacao",
+  lat: -15.5844449,
+  lng: -56.0609833
+}
+];
+
+    const marcadores = [];
+
+    function adicionarMarcadores(tipoFiltro) {
+      marcadores.forEach(m => map.removeLayer(m));
+      marcadores.length = 0;
+
+      locais.forEach(local => {
+        if (tipoFiltro === "todos" || local.tipo === tipoFiltro) {
+          const marker = L.marker([local.lat, local.lng], {
+            icon: icons[local.tipo]
+          }).addTo(map)
+          .bindPopup(`
+            <strong>${local.nome}</strong><br>
+            ${local.descricao}<br>
+            <img src="${local.imagem}" alt="Imagem de ${local.nome}" />
+          `);
+          marcadores.push(marker);
+        }
+      });
+    }
+
+    function filtrar(tipo) {
+      adicionarMarcadores(tipo);
+    }
+
+    // Inicial: mostrar todos
+    adicionarMarcadores("todos");
+  </script>
+</body>
+</html>
